@@ -71,8 +71,13 @@
     .critter,
     .critter-body,
     .crit-leg,
-    .np-dot{ animation: none !important; }
+    .np-dot,
+    .pkmn-sprite{ animation: none !important; }
     html { scroll-behavior: auto; }
+
+    /* sprites still need a hover affordance, just not a moving one */
+    .taglist li.has-sprite:hover .pkmn-sprite,
+    .taglist li.has-sprite:focus-within .pkmn-sprite{ filter: brightness(1.25); }
   }
 
   .wrap{
@@ -250,6 +255,37 @@
     margin-right: 5px;
     font-size: 0.85em;
     line-height: 1;
+  }
+
+  /* Pokémon sprite rows. The <li> text stays put as the caption -- it is the
+     accessible name and it is what shows if JS never runs; the sprite is
+     prepended on top of it. Sprites are decorative (alt=""). */
+  .taglist li.has-sprite{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 12px 8px;
+    border-radius: 16px;
+  }
+  .pkmn-sprite{
+    width: 80px;
+    height: 80px;
+    /* scale-down, not contain: never upscale, so the pixel grid stays crisp.
+       Also lets the 96px PNG fallback shrink into the same reserved box. */
+    object-fit: scale-down;
+    object-position: center bottom;
+    image-rendering: pixelated;
+    transition: filter 0.18s ease;
+  }
+  .taglist li.has-sprite:hover .pkmn-sprite,
+  .taglist li.has-sprite:focus-within .pkmn-sprite{
+    animation: pkmnBounce 0.45s ease;
+  }
+  @keyframes pkmnBounce{
+    0%, 100% { transform: translateY(0); }
+    35%      { transform: translateY(-7px); }
+    60%      { transform: translateY(-2px); }
   }
 
   /* was a <table> with no <th>, which reads to a screen reader as an
@@ -681,13 +717,13 @@
   <section id="pokemon">
     <h2>pokémon !!</h2>
     <p class="subhead">favorite pokémon</p>
-    <ul class="taglist">
+    <ul class="taglist pkmn-row" id="pkmnFaves">
       <li>dewgong</li><li>spheal</li><li>umbreon</li><li>leafeon</li><li>shinx</li>
       <li>zorua</li><li>sawsbuck</li><li>deerling</li><li>dratini</li>
       <li>sharpedo</li>
     </ul>
     <p class="subhead">favorite / dream shinies</p>
-    <ul class="taglist">
+    <ul class="taglist pkmn-row" data-shiny>
       <li>spheal</li><li>umbreon</li><li>zorua</li><li>altaria</li><li>sharpedo</li>
     </ul>
     <p class="subhead">pokémon games</p>
@@ -790,6 +826,40 @@
     update();
     setInterval(update, 30000);
   })();
+
+  // Pokémon sprites. The names live in the markup (they're content, and they
+  // have to survive JS being off); this only hangs a sprite above each one.
+  // Sprite files are local -- see assets/sprites/.
+  const DEX = {
+    dewgong: 87, spheal: 363, umbreon: 197, leafeon: 470, shinx: 403,
+    zorua: 570, sawsbuck: 586, deerling: 585, dratini: 147,
+    sharpedo: 319, altaria: 334,
+  };
+  const SPRITES = 'assets/sprites/';
+
+  document.querySelectorAll('.pkmn-row').forEach(row => {
+    // the shiny row is shiny always -- that's the whole point of the list
+    const suffix = row.hasAttribute('data-shiny') ? 's' : '';
+    row.querySelectorAll('li').forEach(li => {
+      const id = DEX[li.textContent.trim()];
+      if (!id) return;
+      const img = new Image();
+      img.className = 'pkmn-sprite';
+      img.loading = 'lazy';
+      img.width = 80;
+      img.height = 80;
+      img.alt = '';                       // decorative: the caption says the name
+      // animated gif -> static png -> give up quietly, never a broken-image icon
+      img.onerror = () => {
+        if (img.dataset.fallback){ img.remove(); return; }
+        img.dataset.fallback = '1';
+        img.src = SPRITES + id + suffix + '.png';
+      };
+      img.src = SPRITES + id + suffix + '.gif';
+      li.prepend(img);
+      li.classList.add('has-sprite');
+    });
+  });
 
   // now playing widget: polls /api/nowplaying (Last.fm + Deezer preview proxy)
   // and plays the 30s preview via a plain <audio> element.
