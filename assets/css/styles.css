@@ -616,19 +616,30 @@
   }
   /* Sprite rows. JS adds .is-sprites once it has actually put images in, so with
      JS off these stay plain text pills and no names are lost. */
+  /* Grid rather than the wrapping flex the text pills use: every card is the
+     same width and the rows line up in columns, which the ragged pill flow
+     can't do. auto-fill keeps it responsive -- 5 up at full section width,
+     fewer as it narrows, without a media query per breakpoint. */
   .taglist.is-sprites{
-    gap: 4px 8px;
-    align-items: flex-end;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    align-items: stretch;
   }
   .taglist.is-sprites li.spr{
-    background: none;
-    border: none;
-    padding: 0;
-    width: 76px;
+    background: linear-gradient(120deg, var(--tag-a), var(--tag-b));
+    border: 1px solid var(--line);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--accent-bright) 6%, transparent);
+    border-radius: 14px;
+    padding: 10px 6px 9px;
+    width: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    /* sprites sit on a common baseline inside their cards, so a short one
+       (spheal) and a tall one (sawsbuck) still read as one row */
+    justify-content: flex-end;
+    gap: 6px;
     font-size: 0.76rem;
     color: var(--text-soft);
     text-align: center;
