@@ -9,6 +9,20 @@
      Quicksand 400 (body) / 600 (links, starred tags), Space Mono 400 (all mono bits) -->
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Quicksand:wght@400;600&family=Space+Mono&display=swap" rel="stylesheet">
 
+<script>
+  // Runs before first paint. Arms the scroll-reveal hidden state on <html> so
+  // sections don't flash in fully visible and then hide themselves.
+  // Deliberately opt-in: no JS, or reduced motion, means the class is never
+  // added and every section renders plainly visible.
+  (function(){
+    try{
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches){
+        document.documentElement.classList.add('js-reveal');
+      }
+    }catch(e){}
+  })();
+</script>
+
 <style>
   :root{
     --bg: #101d17;
@@ -195,6 +209,19 @@
     box-shadow: var(--shadow);
     border: 1px solid var(--line);
     scroll-margin-top: 70px;
+  }
+
+  /* Scroll reveal. The hidden state hangs off .js-reveal, which the head
+     script puts on <html>. Nothing here applies unless JS ran, so a failed or
+     disabled script leaves every section visible. */
+  .js-reveal section{
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  .js-reveal section.revealed{
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.4s ease, transform 0.4s ease;
   }
 
   section h2{
@@ -825,6 +852,26 @@
     function update(){ el.textContent = fmt.format(new Date()); }
     update();
     setInterval(update, 30000);
+  })();
+
+  // Scroll reveal. The hidden state was armed in <head>; this is what takes it
+  // back off again. Anything already on screen at first paint reveals straight
+  // away, because IntersectionObserver fires on observe().
+  (function(){
+    const sections = document.querySelectorAll('.wrap section');
+    if (!document.documentElement.classList.contains('js-reveal')) return;
+    if (!('IntersectionObserver' in window)){
+      sections.forEach(s => s.classList.add('revealed'));
+      return;
+    }
+    const io = new IntersectionObserver((entries, obs) => {
+      entries.filter(e => e.isIntersecting).forEach((entry, i) => {
+        entry.target.style.transitionDelay = (i * 60) + 'ms';  // stagger siblings
+        entry.target.classList.add('revealed');
+        obs.unobserve(entry.target);
+      });
+    }, { threshold: 0.1 });
+    sections.forEach(s => io.observe(s));
   })();
 
   // Pokémon sprites. The names live in the markup (they're content, and they
