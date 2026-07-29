@@ -101,11 +101,11 @@ import { spriteSrc } from './page.js';
   })();
 
 
-  // ---- easter egg 3: the critter's eyes follow the cursor ----------------
+  // ---- easter egg 3: Bit's eyes follow the cursor -------------------------
   (function(){
     if (reduceMotion.matches || matchMedia('(pointer: coarse)').matches) return;
-    const eyes = [...document.querySelectorAll('.crit-eye')];
-    const sprite = document.querySelector('.crit-flip');
+    const eyes = [...document.querySelectorAll('.bit-eye')];
+    const sprite = document.querySelector('.bit-flip');
     if (!eyes.length || !sprite) return;
 
     let px = 0, py = 0, queued = false;
@@ -126,11 +126,11 @@ import { spriteSrc } from './page.js';
   })();
 
 
-  // ---- easter egg 4: pet the critter -------------------------------------
-  // .crit-flip is a real <button> with a label, so this works from the keyboard
+  // ---- easter egg 4: pet Bit ----------------------------------------------
+  // .bit-flip is a real <button> with a label, so this works from the keyboard
   // too; the track around it stays pointer-events: none.
   (function(){
-    const sprite = document.querySelector('.crit-flip');
+    const sprite = document.querySelector('.bit-flip');
     if (!sprite) return;
     const svg = sprite.querySelector('svg');
 
@@ -157,16 +157,21 @@ import { spriteSrc } from './page.js';
   })();
 
 
-  // ---- easter egg 5: the critter sleeps ----------------------------------
+  // ---- easter egg 5: Bit sleeps -------------------------------------------
   // 60s with no input and it sits down. Pausing (rather than stopping) the
   // animations means it picks the walk back up exactly where it left off.
+  // Typing the word "sleep" anywhere on the page forces the same nap early
+  // and holds it for a fixed 10s, ignoring activity until that timer is up —
+  // otherwise the mouse move that finished typing "sleep" would wake it
+  // again on the very next frame.
   (function(){
     const IDLE_MS = 60000;
-    const slider = document.querySelector('.critter');
-    const sprite = document.querySelector('.crit-flip');
+    const FORCED_SLEEP_MS = 10000;
+    const slider = document.querySelector('.bit');
+    const sprite = document.querySelector('.bit-flip');
     if (!slider || !sprite) return;
-    const legs = [...document.querySelectorAll('.crit-leg')];
-    let timer, asleep = false;
+    const legs = [...document.querySelectorAll('.bit-leg')];
+    let timer, forcedTimer, asleep = false, forced = false;
 
     function setPaused(state){
       [slider, sprite, ...legs].forEach(el => { el.style.animationPlayState = state; });
@@ -184,6 +189,7 @@ import { spriteSrc } from './page.js';
     }                                   // scaleX flip never mirrors the text
 
     function wake(){
+      if (forced) return;               // asleep-on-purpose; activity doesn't count
       if (asleep){
         asleep = false;
         setPaused('');
@@ -194,9 +200,27 @@ import { spriteSrc } from './page.js';
       timer = setTimeout(sleep, IDLE_MS);
     }
 
+    function forceSleep(){
+      forced = true;
+      clearTimeout(timer);
+      sleep();
+      clearTimeout(forcedTimer);
+      forcedTimer = setTimeout(() => { forced = false; wake(); }, FORCED_SLEEP_MS);
+    }
+
     ['pointermove','pointerdown','keydown','scroll','wheel','touchstart']
       .forEach(ev => addEventListener(ev, wake, { passive: true }));
     wake();
+
+    // typed word, not a keybind: no modifier keys, and only plain letter keys
+    // move the buffer along so an arrow key or a shortcut can't fake a match.
+    const WORD = 'sleep';
+    let typed = '';
+    addEventListener('keydown', e => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+      typed = (typed + e.key.toLowerCase()).slice(-WORD.length);
+      if (typed === WORD) forceSleep();
+    });
   })();
 
 

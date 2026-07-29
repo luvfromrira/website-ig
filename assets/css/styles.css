@@ -100,7 +100,7 @@
     .np-wave i:nth-child(3){ transform: scaleY(0.60); }
     .np-wave i:nth-child(4){ transform: scaleY(0.30); }
     nav.pillnav a.is-active,
-    .sparkle, .raindrop, .critter, .crit-flip, .crit-flip.hop svg, .crit-leg,
+    .sparkle, .raindrop, .bit, .bit-flip, .bit-flip.hop svg, .bit-leg,
     .avatar-orb, .np-dot, .spr img, .pop, .heart-pop, .zzz, .toast,
     .presence, .presence-dot::after{
       animation: none !important;
@@ -821,8 +821,8 @@
     letter-spacing: 0.05em;
   }
 
-  /* signature element: little pixel critter cruising along the bottom */
-  .critter-track{
+  /* signature element: little pixel bit cruising along the bottom */
+  .bit-track{
     position: fixed;
     left: 0; right: 0; bottom: 18px;
     height: 40px;
@@ -832,29 +832,29 @@
   /* Two nested elements so the two transforms don't fight: the outer one slides
      (translateX only, compositor-friendly), the inner one flips to face the way
      it's walking. `left` is never animated — that relayouts every frame forever.
-     .critter spans the whole track, so translateX percentages are track-relative
+     .bit spans the whole track, so translateX percentages are track-relative
      and the walk stays correct at any viewport width without JS. */
-  .critter{
+  .bit{
     position: absolute;
     bottom: 0;
     left: 0; right: 0;
     height: 34px;
     animation: cruise 16s linear infinite;
   }
-  .crit-flip{
+  .bit-flip{
     width: 34px;
     height: 34px;
     animation: faceFlip 16s linear infinite;
     filter: drop-shadow(0 6px 6px rgba(0,0,0,0.35));
   }
-  .crit-flip svg{ width: 100%; height: 100%; display: block; image-rendering: pixelated; }
-  .crit-body{ fill: var(--accent-bright); }
-  .crit-belly{ fill: var(--surface-2); }
-  .crit-ear{ fill: var(--accent-2-bright); }
-  .crit-eye{ fill: var(--bg); }
-  .crit-tail{ fill: var(--accent-2); }
-  .crit-leg{ fill: var(--accent-bright); animation: stepBounce 0.6s steps(2) infinite; transform-origin: center; }
-  .crit-leg.b{ animation-delay: 0.3s; }
+  .bit-flip svg{ width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+  .bit-body{ fill: var(--accent-bright); }
+  .bit-belly{ fill: var(--surface-2); }
+  .bit-ear{ fill: var(--accent-2-bright); }
+  .bit-eye{ fill: var(--bg); }
+  .bit-tail{ fill: var(--accent-2); }
+  .bit-leg{ fill: var(--accent-bright); animation: stepBounce 0.6s steps(2) infinite; transform-origin: center; }
+  .bit-leg.b{ animation-delay: 0.3s; }
   @keyframes stepBounce{
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-1px); }
@@ -1431,8 +1431,8 @@
     cursor: pointer;
   }
 
-  /* petting the critter */
-  .crit-flip{
+  /* petting the bit */
+  .bit-flip{
     background: none;
     border: 0;
     padding: 0;
@@ -1441,14 +1441,14 @@
     pointer-events: auto;
     cursor: pointer;
   }
-  /* the hop goes on the <svg>, not on .crit-flip — that element is already
+  /* the hop goes on the <svg>, not on .bit-flip — that element is already
      running faceFlip and two transform animations would fight */
   @keyframes hop{
     0%, 100% { transform: translateY(0); }
     40%      { transform: translateY(-10px); }
     70%      { transform: translateY(-2px); }
   }
-  .crit-flip.hop svg{ animation: hop 0.5s ease; }
+  .bit-flip.hop svg{ animation: hop 0.5s ease; }
 
   .heart-pop{
     position: fixed;
@@ -1464,7 +1464,7 @@
     100% { opacity: 0; transform: translateY(-38px) scale(1); }
   }
 
-  /* the critter dozing off */
+  /* the bit dozing off */
   .zzz{
     position: absolute;
     bottom: 26px;
@@ -1482,8 +1482,8 @@
     50%      { opacity: 0.85; transform: translateY(-5px); }
   }
 
-  /* while something is actually playing, the critter walks a little quicker */
-  body.np-live .crit-leg{ animation-duration: 0.38s; }
+  /* while something is actually playing, the bit walks a little quicker */
+  body.np-live .bit-leg{ animation-duration: 0.38s; }
 
   /* birthday banner (october 5, automatic) */
   .bday{

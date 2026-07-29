@@ -399,7 +399,7 @@ import { reduceMotion } from './appearance.js';
     }
 
     function render(data){
-      // easter egg 6: the critter picks up the pace only while something is
+      // easter egg 6: Bit picks up the pace only while something is
       // genuinely playing — not for the dimmed "last played" state. Set before
       // the early return so it also clears when the widget goes away.
       document.body.classList.toggle('np-live', !!(data && data.nowplaying && data.title));
