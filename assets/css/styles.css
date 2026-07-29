@@ -829,9 +829,11 @@
     z-index: 5;
     pointer-events: none;
   }
-  /* Two nested elements so the two transforms don't fight: the outer one slides
-     (translateX only, compositor-friendly), the inner one flips to face the way
-     it's walking. `left` is never animated — that relayouts every frame forever.
+  /* Three nested elements so none of their transforms fight: the outer one
+     slides (translateX only, compositor-friendly), the middle one lifts Bit
+     onto whatever fixed widget it's currently passing under (JS-driven,
+     see easter-eggs.js), and the inner one flips to face the way it's
+     walking. `left` is never animated — that relayouts every frame forever.
      .bit spans the whole track, so translateX percentages are track-relative
      and the walk stays correct at any viewport width without JS. */
   .bit{
@@ -841,6 +843,15 @@
     height: 34px;
     animation: cruise 16s linear infinite;
   }
+  .bit-lift{
+    width: 34px;
+    height: 34px;
+    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateY(calc(-1 * var(--lift, 0px)));
+  }
+  /* while Bit sits on top of a widget, its track needs to render above that
+     widget's own z-index instead of underneath it as usual */
+  .bit-track.is-onto{ z-index: 25; }
   .bit-flip{
     width: 34px;
     height: 34px;

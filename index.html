@@ -192,26 +192,32 @@
      reaches the page before these five decorative controls. -->
 <div class="bit-track">
   <div class="bit">
-   <button class="bit-flip" type="button" aria-label="pet Bit">
-    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-hidden="true">
-      <!-- tail -->
-      <rect class="bit-tail" x="1" y="6" width="2" height="2" />
-      <rect class="bit-tail" x="0" y="4" width="2" height="2" />
-      <!-- ears -->
-      <rect class="bit-ear" x="4" y="1" width="2" height="2" />
-      <rect class="bit-ear" x="9" y="1" width="2" height="2" />
-      <!-- head/body -->
-      <rect class="bit-body" x="4" y="3" width="8" height="7" />
-      <!-- belly patch -->
-      <rect class="bit-belly" x="6" y="6" width="4" height="4" />
-      <!-- eyes -->
-      <rect class="bit-eye" x="5" y="5" width="1" height="1" />
-      <rect class="bit-eye" x="10" y="5" width="1" height="1" />
-      <!-- legs (alternate for walk cycle) -->
-      <rect class="bit-leg a" x="5" y="10" width="2" height="2" />
-      <rect class="bit-leg b" x="9" y="10" width="2" height="2" />
-    </svg>
-   </button>
+   <!-- .bit-lift is JS-only: it carries the vertical hop-onto-the-widget
+        offset so that lift never fights .bit's translateX cruise or
+        .bit-flip's scaleX flip, each of which owns the whole `transform`
+        property on its own element. -->
+   <div class="bit-lift">
+    <button class="bit-flip" type="button" aria-label="pet Bit">
+     <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" aria-hidden="true">
+       <!-- tail -->
+       <rect class="bit-tail" x="1" y="6" width="2" height="2" />
+       <rect class="bit-tail" x="0" y="4" width="2" height="2" />
+       <!-- ears -->
+       <rect class="bit-ear" x="4" y="1" width="2" height="2" />
+       <rect class="bit-ear" x="9" y="1" width="2" height="2" />
+       <!-- head/body -->
+       <rect class="bit-body" x="4" y="3" width="8" height="7" />
+       <!-- belly patch -->
+       <rect class="bit-belly" x="6" y="6" width="4" height="4" />
+       <!-- eyes -->
+       <rect class="bit-eye" x="5" y="5" width="1" height="1" />
+       <rect class="bit-eye" x="10" y="5" width="1" height="1" />
+       <!-- legs (alternate for walk cycle) -->
+       <rect class="bit-leg a" x="5" y="10" width="2" height="2" />
+       <rect class="bit-leg b" x="9" y="10" width="2" height="2" />
+     </svg>
+    </button>
+   </div>
   </div>
 </div>
 

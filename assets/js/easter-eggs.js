@@ -224,6 +224,70 @@ import { spriteSrc } from './page.js';
   })();
 
 
+  // ---- easter egg 9: Bit hops onto the fixed widgets it passes -----------
+  // .bit-track normally sits below the now-playing card and theme switch
+  // (both z-index 20) so Bit just walks the ground behind them. On an
+  // interval (not requestAnimationFrame — rAF throttles or stops entirely
+  // in a backgrounded tab, but the CSS cruise animation keeps running there,
+  // so rAF would desync from Bit's real position) this checks whether Bit's
+  // actual footprint overlaps either widget's current rect, reading it back
+  // with getBoundingClientRect rather than the animation math so it doesn't
+  // matter that .bit's translateX trick is relative to its own full-width
+  // box. On overlap it lifts .bit-lift by exactly the gap between them and
+  // raises .bit-track above both, so Bit appears to jump up and perch on
+  // top instead of sliding underneath.
+  (function(){
+    if (reduceMotion.matches) return;
+    const track = document.querySelector('.bit-track');
+    const lift = document.querySelector('.bit-lift');
+    const sprite = document.querySelector('.bit-flip');
+    if (!track || !lift || !sprite) return;
+
+    const widgets = [document.querySelector('.now-playing'), document.querySelector('.theme-switch')]
+      .filter(Boolean);
+    if (!widgets.length) return;
+
+    let onto = false;
+
+    function landingHop(){
+      sprite.classList.remove('hop');
+      void sprite.querySelector('svg').offsetWidth;   // reflow, so it can retrigger mid-animation
+      sprite.classList.add('hop');
+    }
+
+    function tick(){
+      const bitRect = sprite.getBoundingClientRect();
+      // sprite lives inside .bit-lift, so its rect already reflects whatever
+      // lift is currently applied. Undo that here first -- otherwise each
+      // tick would measure the gap against its own partially-lifted position
+      // and settle short of the real target instead of holding it.
+      const currentLift = parseFloat(lift.style.getPropertyValue('--lift')) || 0;
+      const groundBottom = bitRect.bottom + currentLift;
+      let lift_px = 0;
+
+      for (const w of widgets){
+        if (w.hidden) continue;   // now-playing hides itself when there's nothing to show
+        const wr = w.getBoundingClientRect();
+        // not offsetParent -- these are position: fixed, and Chromium always
+        // reports a null offsetParent for fixed elements whether or not
+        // they're actually rendered, so a zero rect is the real "not shown" test.
+        if (wr.width === 0 && wr.height === 0) continue;
+        const overlaps = bitRect.right > wr.left && bitRect.left < wr.right && groundBottom > wr.top;
+        if (!overlaps) continue;
+        lift_px = Math.max(lift_px, groundBottom - wr.top);
+      }
+
+      const wasOnto = onto;
+      onto = lift_px > 0;
+      if (onto !== wasOnto) landingHop();
+      track.classList.toggle('is-onto', onto);
+      lift.style.setProperty('--lift', lift_px + 'px');
+    }
+    setInterval(tick, 60);
+    tick();
+  })();
+
+
   // ---- easter egg 7: tab-blur title --------------------------------------
   (function(){
     const original = document.title;
