@@ -1,0 +1,1506 @@
+  :root{
+    --bg: #101d17;
+    --card: #1c2f26;
+    --accent: #8fcbb0;
+    --accent-bright: #b9e4d0;
+    --accent-2: #6fa88f;
+    --accent-2-bright: #a5d9c0;
+    --surface-2: #24392f;
+    --text: #e7f3ed;
+    --text-soft: #9fc0af;
+    --line: #33513f;
+    --sunken: #16281f;
+    --surface-3: #182c22;
+    --tag-a: #223a30;
+    --tag-b: #1c322a;
+    --on-accent: #10241c;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Alternate palettes. :root above is `mint` and stays the default, so a theme
+     is only ever an override of the tokens — no component CSS knows about this. */
+
+
+  /* for the rain and the night */
+  [data-theme="rain"]{
+    --bg: #0e1418;
+    --card: #18222a;
+    --accent: #7fa8c4;
+    --accent-bright: #a9cbe0;
+    --accent-2: #6b8fa8;
+    --accent-2-bright: #94b8ce;
+    --surface-2: #1f2c35;
+    --text: #e2ecf2;
+    --text-soft: #93aab8;
+    --line: #2c3d49;
+    --sunken: #131c22;
+    --surface-3: #162027;
+    --tag-a: #1e2b34;
+    --tag-b: #1a252d;
+    --on-accent: #0c1519;
+  }
+
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body{
+    margin: 0;
+    background: var(--bg);
+    /* colour-mix so the ambient wash follows the palette instead of being three
+       hardcoded mint rgba()s that stay green in every theme */
+    background-image:
+      radial-gradient(circle at 10% 10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 40%),
+      radial-gradient(circle at 90% 20%, color-mix(in srgb, var(--accent-2) 12%, transparent), transparent 45%),
+      radial-gradient(circle at 50% 90%, color-mix(in srgb, var(--surface-2) 60%, transparent), transparent 50%);
+    color: var(--text);
+    font-family: 'Quicksand', sans-serif;
+    /* `clip` and not `hidden`: `hidden` silently makes this a scroll container,
+       which breaks the sticky nav. Same visual result, no side effect. */
+    overflow-x: clip;
+    position: relative;
+  }
+
+  /* floating ambient sparkles */
+  .sparkle{
+    position: fixed;
+    pointer-events: none;
+    font-size: 1.1rem;
+    color: var(--accent);
+    opacity: 0.5;
+    animation: floatUp linear infinite;
+    z-index: 0;
+    user-select: none;
+  }
+  @keyframes floatUp{
+    0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+    10%  { opacity: 0.55; }
+    90%  { opacity: 0.4; }
+    100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* Named classes, not `*`. The wildcard used to kill animations we hadn't
+     written yet, which is impossible to debug. Anything animated gets listed here. */
+  @media (prefers-reduced-motion: reduce){
+    .av,
+    .now-playing, .np-shell, .np-art-wrap, .np-detail, .np-playbtn,
+    .np-pulse .np-dot, .np-pulse .np-wave, .np-meter,
+    .theme-switch,
+    .presence, .presence::before, .presence-main, .presence-profile{
+      transition: none !important;
+    }
+    .np-title.is-marquee > span, .np-artist.is-marquee > span{ animation: none !important; }
+    /* the widget still appears and still opens — it just does not travel */
+    .now-playing{ opacity: 1; transform: none; filter: none; }
+    .now-playing .np-art-wrap{ opacity: 1; transform: none; }
+    .np-wave i{ transition: none !important; }
+    .np-wave i:nth-child(1){ transform: scaleY(0.45); }
+    .np-wave i:nth-child(2){ transform: scaleY(0.85); }
+    .np-wave i:nth-child(3){ transform: scaleY(0.60); }
+    .np-wave i:nth-child(4){ transform: scaleY(0.30); }
+    nav.pillnav a.is-active,
+    .sparkle, .raindrop, .critter, .crit-flip, .crit-flip.hop svg, .crit-leg,
+    .avatar-orb, .np-dot, .spr img, .pop, .heart-pop, .zzz, .toast,
+    .presence, .presence-dot::after{
+      animation: none !important;
+    }
+    html { scroll-behavior: auto; }
+    nav.pillnav a,
+    .pillnav-indicator{ transition: none !important; }
+  }
+
+  .wrap{
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 56px 24px 140px;
+    position: relative;
+    z-index: 1;
+  }
+
+  header.hero{
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  h1.title{
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2.4rem, 7vw, 3.4rem);
+    margin: 0 0 6px;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  h1.title span{
+    /* three stops spanning the whole accent range — the old pair of near-identical
+       mints read as flat colour */
+    background: linear-gradient(100deg, var(--accent-bright), var(--accent) 45%, var(--accent-2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .aka{
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    margin-bottom: 20px;
+  }
+
+  /* Live Discord presence belongs with the identity block, not in a page card:
+     it reads as a quiet, changing footnote to the name and leaves the fixed
+     corners free for the player and theme controls. */
+  .presence{
+    --presence-colour: #7f9189;
+    position: relative;
+    isolation: isolate;
+    display: inline-grid;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    max-width: min(100%, 430px);
+    min-height: 30px;
+    margin: -8px auto 20px;
+    padding: 5px 11px;
+    border: 1px solid color-mix(in srgb, var(--presence-colour) 32%, var(--line));
+    border-radius: 999px;
+    background: linear-gradient(145deg,
+      color-mix(in srgb, var(--surface-3) 94%, var(--presence-colour) 6%),
+      color-mix(in srgb, var(--sunken) 92%, var(--presence-colour) 8%));
+    box-shadow:
+      0 6px 18px rgba(0, 0, 0, 0.16),
+      inset 0 1px 0 color-mix(in srgb, var(--presence-colour) 14%, transparent);
+    color: var(--text-soft);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem;
+    line-height: 1.35;
+    letter-spacing: 0.025em;
+    text-decoration: none;
+    overflow: hidden;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    animation: presenceIn 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+    transition:
+      transform 0.46s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.34s ease,
+      box-shadow 0.46s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .presence::before{
+    content: '';
+    position: absolute;
+    z-index: 0;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(145deg,
+      color-mix(in srgb, #5865f2 88%, var(--accent-bright)),
+      color-mix(in srgb, #4752c4 90%, var(--card)));
+    opacity: 0;
+    transform: scale(0.9);
+    transition:
+      opacity 0.34s ease,
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .presence[hidden]{ display: none; }
+  .presence[data-status="online"]{ --presence-colour: #66c992; }
+  .presence[data-status="idle"]{ --presence-colour: #e2ad67; }
+  .presence[data-status="dnd"]{ --presence-colour: #e06f7d; }
+  .presence[data-status="offline"]{ --presence-colour: #7f9189; }
+  @keyframes presenceIn{
+    0%   { opacity: 0; transform: translateY(9px) scale(0.94); filter: blur(5px); }
+    60%  { opacity: 1; }
+    100% { opacity: 1; transform: none; filter: blur(0); }
+  }
+  .presence-main,
+  .presence-profile{
+    position: relative;
+    z-index: 1;
+    grid-area: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    will-change: transform, opacity;
+    transition:
+      opacity 0.26s ease,
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      filter 0.34s ease;
+  }
+  .presence-main{ transform: none; }
+  .presence-profile{
+    gap: 7px;
+    color: white;
+    font-weight: 600;
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(7px) scale(0.92);
+  }
+  .presence-profile svg{
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+  }
+  .presence:hover,
+  .presence:focus-visible{
+    border-color: color-mix(in srgb, #8791ff 76%, var(--accent-bright));
+    box-shadow:
+      0 10px 24px color-mix(in srgb, #5865f2 24%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px) scale(1.025);
+  }
+  .presence:hover::before,
+  .presence:focus-visible::before{
+    opacity: 1;
+    transform: scale(1);
+  }
+  .presence:hover .presence-main,
+  .presence:focus-visible .presence-main{
+    opacity: 0;
+    filter: blur(2px);
+    transform: translateY(-7px) scale(0.94);
+  }
+  .presence:hover .presence-profile,
+  .presence:focus-visible .presence-profile{
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+  .presence:active{
+    transform: translateY(0) scale(0.985);
+    transition-duration: 0.1s;
+  }
+  .presence-status,
+  .presence-custom{
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+  }
+  .presence-status{
+    flex: 0 0 auto;
+    gap: 7px;
+    color: color-mix(in srgb, var(--presence-colour) 80%, var(--text));
+    font-weight: 600;
+    text-transform: lowercase;
+  }
+  .presence-dot{
+    position: relative;
+    width: 8px;
+    height: 8px;
+    flex: 0 0 auto;
+    border: 2px solid color-mix(in srgb, var(--presence-colour) 72%, var(--card));
+    border-radius: 50%;
+    background: var(--presence-colour);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--presence-colour) 13%, transparent);
+  }
+  .presence[data-status="online"] .presence-dot::after{
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border: 1px solid color-mix(in srgb, var(--presence-colour) 50%, transparent);
+    border-radius: inherit;
+    animation: presencePulse 2.4s ease-out infinite;
+  }
+  @keyframes presencePulse{
+    0%, 40% { opacity: 0.7; transform: scale(0.65); }
+    78%, 100% { opacity: 0; transform: scale(1.35); }
+  }
+  .presence-divider{
+    width: 1px;
+    height: 13px;
+    margin: 0 9px;
+    flex: 0 0 auto;
+    background: color-mix(in srgb, var(--presence-colour) 24%, var(--line));
+  }
+  .presence-divider[hidden],
+  .presence-custom[hidden]{ display: none; }
+  .presence-custom{
+    gap: 5px;
+    overflow: hidden;
+    color: var(--text);
+  }
+  .presence-emoji{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    font-family: sans-serif;
+    font-size: 0.83rem;
+    line-height: 1;
+  }
+  .presence-emoji:empty{ display: none; }
+  .presence-emoji img{
+    display: block;
+    width: 15px;
+    height: 15px;
+    object-fit: contain;
+  }
+  .presence-text{
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 420px){
+    .presence{
+      max-width: calc(100vw - 48px);
+      font-size: 0.65rem;
+    }
+  }
+
+  .intro{
+    max-width: 480px;
+    margin: 0 auto 26px;
+    font-size: 1.02rem;
+    line-height: 1.65;
+  }
+  .intro strong { color: var(--accent-bright); }
+  .intro a{
+    color: var(--accent-2-bright);
+    text-decoration: none;
+    border-bottom: 2px solid var(--accent-2);
+    font-weight: 600;
+  }
+  .intro a:hover, .intro a:focus-visible { color: var(--accent-bright); border-color: var(--accent); }
+
+  .avatar-orb{
+    position: relative;
+    width: 130px; height: 130px;
+    margin: 0 auto 26px;
+    border-radius: 40% 60% 55% 45% / 50% 40% 60% 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow);
+    animation: blobWiggle 8s ease-in-out infinite;
+    font-size: 2.6rem;
+    overflow: hidden;
+    padding: 5px;
+  }
+  /* Both avatars are stacked and always present, so the theme swap is a pure
+     CSS cross-fade with nothing to load at switch time. The blob keeps wiggling
+     underneath — only opacity and scale move, so it stays on the compositor. */
+  .avatar-orb .av{
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: calc(100% - 10px);
+    height: calc(100% - 10px);
+    object-fit: cover;
+    border-radius: 38% 58% 53% 43% / 48% 38% 58% 48%;
+    display: block;
+    opacity: 0;
+    transform: scale(1.06);
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  /* Every state below is scoped through .avatar-orb so it matches the base rule's
+     specificity — otherwise the base `opacity: 0` wins and the avatar never
+     appears. Green is the default, so it still shows with no data-theme (JS off). */
+  .avatar-orb .av-mint{ opacity: 1; transform: scale(1); }
+  [data-theme="rain"] .avatar-orb .av-mint{ opacity: 0; transform: scale(0.94); }
+  [data-theme="rain"] .avatar-orb .av-rain{ opacity: 1; transform: scale(1); }
+  @keyframes blobWiggle{
+    0%, 100% { border-radius: 40% 60% 55% 45% / 50% 40% 60% 50%; }
+    50% { border-radius: 55% 45% 40% 60% / 45% 55% 45% 55%; }
+  }
+
+  /* sticky nav */
+  nav.pillnav{
+    position: sticky;
+    top: 14px;
+    z-index: 10;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 3px;
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 46px;
+    border: 1px solid color-mix(in srgb, var(--accent-bright) 13%, var(--line));
+    border-radius: 24px;
+    background: linear-gradient(135deg,
+      color-mix(in srgb, var(--card) 74%, transparent),
+      color-mix(in srgb, var(--surface-2) 58%, transparent));
+    -webkit-backdrop-filter: blur(28px) saturate(150%);
+    backdrop-filter: blur(28px) saturate(150%);
+    box-shadow:
+      0 14px 34px rgba(0, 0, 0, 0.26),
+      inset 0 1px 0 color-mix(in srgb, var(--accent-bright) 16%, transparent),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.16);
+  }
+  nav.pillnav a{
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 40px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    line-height: 1;
+    letter-spacing: 0.035em;
+    text-transform: lowercase;
+    text-align: center;
+    text-decoration: none;
+    color: var(--text-soft);
+    padding: 0 6px;
+    border-radius: 18px;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.22s ease, background-color 0.22s ease,
+                transform 0.12s ease-out;
+  }
+  nav.pillnav a:hover:not(.is-active){
+    color: var(--accent-bright);
+    background: color-mix(in srgb, var(--accent) 9%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--accent-bright) 8%, transparent);
+  }
+  nav.pillnav a:focus-visible{
+    box-shadow: inset 0 0 0 2px var(--accent-bright);
+  }
+  nav.pillnav a:active{
+    transform: scale(0.965);
+  }
+  nav.pillnav a.is-active{
+    color: var(--on-accent);
+    font-weight: 600;
+  }
+  /* One indicator moves between equal cells, so selection reads as a continuous
+     handoff while every label keeps the same visual weight and alignment. */
+  .pillnav-indicator{
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    left: 0;
+    width: var(--indicator-w, 0px);
+    height: var(--indicator-h, 40px);
+    border-radius: 18px;
+    pointer-events: none;
+    background: linear-gradient(145deg,
+      color-mix(in srgb, var(--accent-bright) 94%, white 6%),
+      color-mix(in srgb, var(--accent) 88%, var(--accent-2)));
+    box-shadow:
+      0 6px 16px color-mix(in srgb, var(--accent) 18%, transparent),
+      inset 0 1px 0 color-mix(in srgb, white 34%, transparent),
+      inset 0 -1px 0 color-mix(in srgb, var(--accent-2) 22%, transparent);
+    opacity: 0;
+    transform: translate3d(var(--indicator-x, 5px), var(--indicator-y, 5px), 0);
+    transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+                width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+                height 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.18s ease-out;
+    will-change: transform;
+  }
+  .pillnav-indicator::after{
+    content: '';
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    background: linear-gradient(180deg,
+      color-mix(in srgb, white 14%, transparent),
+      transparent 48%);
+    pointer-events: none;
+  }
+  nav.pillnav.has-active .pillnav-indicator{
+    opacity: 1;
+  }
+  @media (max-width: 560px){
+    nav.pillnav{
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-radius: 25px;
+    }
+  }
+  @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))){
+    nav.pillnav{
+      background: color-mix(in srgb, var(--card) 96%, var(--bg));
+    }
+  }
+  @media (prefers-contrast: more){
+    nav.pillnav{
+      background: var(--card);
+      border-color: var(--accent-2-bright);
+    }
+  }
+
+  section{
+    background: linear-gradient(145deg,
+      color-mix(in srgb, var(--card) 82%, transparent),
+      color-mix(in srgb, var(--surface-2) 64%, transparent));
+    border-radius: 26px;
+    padding: 34px 32px;
+    margin-bottom: 24px;
+    border: 1px solid color-mix(in srgb, var(--accent-bright) 11%, var(--line));
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    backdrop-filter: blur(24px) saturate(140%);
+    box-shadow:
+      0 16px 40px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 color-mix(in srgb, var(--accent-bright) 10%, transparent),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.14);
+    scroll-margin-top: 82px;
+  }
+  @media (max-width: 560px){
+    section{ scroll-margin-top: 128px; }
+  }
+
+  /* scroll reveal. Scoped under .js-reveal, which only the inline head script
+     above ever adds — so no JS (or reduced motion) means no hidden state at all. */
+  .js-reveal .wrap section{
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  .js-reveal .wrap section.is-in{
+    opacity: 1;
+    transform: none;
+    /* easeOutQuint: moves off the mark quickly then settles, which reads far
+       softer than `ease` for a translate this small */
+    transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.62s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  section h2{
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.5rem;
+    margin: 0 0 18px;
+    color: var(--accent-bright);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  section h2::before{
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent-2);
+    display: inline-block;
+  }
+
+  .subhead{
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-soft);
+    margin: 18px 0 8px;
+  }
+  .subhead:first-of-type{ margin-top: 0; }
+
+  p.body-text{ line-height: 1.7; margin: 0 0 8px; font-size: 0.98rem; }
+
+  .taglist{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .taglist li{
+    background: linear-gradient(120deg, var(--tag-a), var(--tag-b));
+    border: 1px solid var(--line);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--accent-bright) 6%, transparent);
+    color: var(--text);
+    font-size: 0.85rem;
+    padding: 6px 13px;
+    border-radius: 999px;
+  }
+  .taglist li.starred{
+    background: linear-gradient(145deg, var(--accent-bright), var(--accent) 45%, var(--accent-2));
+    color: var(--on-accent);
+    font-weight: 600;
+    border: none;
+    box-shadow:
+      0 4px 10px color-mix(in srgb, var(--accent) 14%, transparent),
+      inset 0 1px 0 color-mix(in srgb, white 28%, transparent);
+  }
+  /* Sprite rows. JS adds .is-sprites once it has actually put images in, so with
+     JS off these stay plain text pills and no names are lost. */
+  .taglist.is-sprites{
+    gap: 4px 8px;
+    align-items: flex-end;
+  }
+  .taglist.is-sprites li.spr{
+    background: none;
+    border: none;
+    padding: 0;
+    width: 76px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 0.76rem;
+    color: var(--text-soft);
+    text-align: center;
+    line-height: 1.3;
+  }
+  .taglist.is-sprites li.spr img{
+    /* fixed box + contain: the gen-V sprites are all different sizes (36x50 to
+       75x78) and swapping normal <-> shiny must never move the row */
+    width: 76px;
+    height: 80px;
+    object-fit: contain;
+    object-position: bottom;
+    image-rendering: pixelated;
+    transition: filter 0.15s ease;
+  }
+  @keyframes sprBounce{
+    0%, 100% { transform: translateY(0); }
+    30%      { transform: translateY(-7px); }
+    55%      { transform: translateY(0); }
+    78%      { transform: translateY(-3px); }
+  }
+  .spr:hover img, .spr:focus-visible img{ animation: sprBounce 0.6s ease; }
+  @media (prefers-reduced-motion: reduce){
+    /* no hop — a brightness lift instead, so hover still reads as feedback */
+    .spr:hover img, .spr:focus-visible img{ filter: brightness(1.3); }
+  }
+
+  /* the star carries the meaning so it survives greyscale / colour-blindness —
+     the gradient is decoration on top of it, not the signal */
+  .taglist li.starred::before{
+    content: '★';
+    margin-right: 5px;
+    font-size: 0.8em;
+    vertical-align: 1px;
+  }
+
+  /* was a <table> with no <th> — an unlabelled grid to a screen reader.
+     A description list says "these are term/value pairs" for free. */
+  dl.bio-list{
+    margin: 0;
+    display: grid;
+    grid-template-columns: 40% 1fr;
+  }
+  dl.bio-list dt,
+  dl.bio-list dd{
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.95rem;
+  }
+  dl.bio-list dt{
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-bright);
+  }
+  dl.bio-list > :nth-last-child(-n+2){ border-bottom: none; }
+
+  /* live local time, appended to the "time zone" row */
+  .localtime{
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--accent-bright);
+    margin-left: 10px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--surface-3);
+    border: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .localtime[hidden]{ display: none; }
+  @media (max-width: 420px){
+    .localtime{ margin-left: 0; margin-top: 4px; display: inline-block; }
+    dl.bio-list dd{ flex-wrap: wrap; }
+  }
+
+  .likes-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 560px){ .likes-grid{ grid-template-columns: 1fr; } }
+  .likes-grid .col h3{
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1rem;
+    margin: 0 0 8px;
+    color: var(--accent-2-bright);
+  }
+  .likes-grid .col.dislikes h3{ color: var(--accent-bright); }
+
+  .note-card{
+    background: linear-gradient(135deg,
+      color-mix(in srgb, var(--surface-2) 94%, var(--accent) 6%),
+      var(--surface-2));
+    border: 1px dashed color-mix(in srgb, var(--accent-bright) 26%, var(--accent-2));
+    border-radius: 18px;
+    padding: 18px 20px;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--accent-bright) 8%, transparent),
+      0 6px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .dni-box{
+    background: linear-gradient(145deg,
+      color-mix(in srgb, var(--sunken) 92%, var(--card)),
+      var(--sunken));
+    border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+    border-radius: 18px;
+    padding: 20px 22px;
+    box-shadow:
+      inset 0 2px 8px rgba(0, 0, 0, 0.18),
+      inset 0 1px 0 color-mix(in srgb, var(--accent-bright) 5%, transparent);
+  }
+  .dni-box .taglist li{
+    background: var(--card);
+    border-color: var(--line);
+    font-size: 0.78rem;
+  }
+
+  .links-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  .links-grid a{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--text);
+    background: linear-gradient(145deg,
+      color-mix(in srgb, var(--surface-3) 94%, var(--surface-2)),
+      var(--surface-3));
+    border: 1px solid color-mix(in srgb, var(--accent-bright) 9%, var(--line));
+    padding: 11px 14px;
+    border-radius: 14px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    box-shadow:
+      0 4px 10px rgba(0, 0, 0, 0.12),
+      inset 0 1px 0 color-mix(in srgb, var(--accent-bright) 7%, transparent);
+    transition: background 0.18s ease, transform 0.14s ease-out,
+                color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .links-grid a:hover, .links-grid a:focus-visible{
+    background: linear-gradient(145deg, var(--accent-bright), var(--accent));
+    color: var(--on-accent);
+    transform: translateY(-2px);
+    box-shadow:
+      0 8px 18px color-mix(in srgb, var(--accent) 18%, transparent),
+      inset 0 1px 0 color-mix(in srgb, white 30%, transparent);
+  }
+  .links-grid a:active{ transform: translateY(0) scale(0.98); }
+  /* icons are inline SVG now — each one paints with `currentColor`, so this
+     only has to set the size and the colour, same as it did for the <i> */
+  .links-grid svg{
+    width: 16px;
+    height: 16px;
+    color: var(--accent-2);
+    flex-shrink: 0;
+    transition: color 0.15s ease;
+  }
+  .links-grid a:hover svg, .links-grid a:focus-visible svg{
+    color: var(--on-accent);
+  }
+
+  footer{
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-soft);
+    margin-top: 30px;
+    letter-spacing: 0.05em;
+  }
+
+  /* signature element: little pixel critter cruising along the bottom */
+  .critter-track{
+    position: fixed;
+    left: 0; right: 0; bottom: 18px;
+    height: 40px;
+    z-index: 5;
+    pointer-events: none;
+  }
+  /* Two nested elements so the two transforms don't fight: the outer one slides
+     (translateX only, compositor-friendly), the inner one flips to face the way
+     it's walking. `left` is never animated — that relayouts every frame forever.
+     .critter spans the whole track, so translateX percentages are track-relative
+     and the walk stays correct at any viewport width without JS. */
+  .critter{
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+    height: 34px;
+    animation: cruise 16s linear infinite;
+  }
+  .crit-flip{
+    width: 34px;
+    height: 34px;
+    animation: faceFlip 16s linear infinite;
+    filter: drop-shadow(0 6px 6px rgba(0,0,0,0.35));
+  }
+  .crit-flip svg{ width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+  .crit-body{ fill: var(--accent-bright); }
+  .crit-belly{ fill: var(--surface-2); }
+  .crit-ear{ fill: var(--accent-2-bright); }
+  .crit-eye{ fill: var(--bg); }
+  .crit-tail{ fill: var(--accent-2); }
+  .crit-leg{ fill: var(--accent-bright); animation: stepBounce 0.6s steps(2) infinite; transform-origin: center; }
+  .crit-leg.b{ animation-delay: 0.3s; }
+  @keyframes stepBounce{
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-1px); }
+  }
+  @keyframes cruise{
+    0%        { transform: translateX(-40px); }
+    48%, 50%  { transform: translateX(calc(100% - 34px)); }
+    98%, 100% { transform: translateX(-40px); }
+  }
+  @keyframes faceFlip{
+    0%, 48%   { transform: scaleX(1); }
+    50%, 98%  { transform: scaleX(-1); }
+    100%      { transform: scaleX(1); }
+  }
+
+  ::selection{ background: var(--accent); color: var(--on-accent); }
+
+  /* ==================================================================
+     NOW PLAYING  —  Last.fm scrobble + Deezer 30s preview
+     ------------------------------------------------------------------
+     One surface, two shapes. At rest it is a small capsule: artwork and a
+     live indicator. Tapped, it becomes a card: artwork, track, artist,
+     preview button. There is no second element and no second layout.
+
+     Every geometric value below is a linear interpolation of a single
+     number, `--t`, which a spring in JS drives between 0 and 1. That one
+     decision is what fixes the old animation:
+
+       * ONE CLOCK. Width, height, radius, padding, artwork size and
+         every fade land on the same frame. Six CSS transitions with six
+         durations could not, and the drift is what read as "broken".
+       * INTERRUPTIBLE. Tapping mid-flight re-targets the spring from
+         wherever it is, carrying its velocity, instead of starting a
+         second transition that fights the first.
+       * NOTHING REFLOWS. The children are absolutely positioned, so the
+         shell can resize without the text rewrapping or the artwork
+         being pushed around a flex line every frame. That reflow is what
+         made the old morph judder on phones.
+
+     Placement: bottom-left, clear of the sticky nav. Below 1300px the
+     capsule is the resting state, because the open card would otherwise
+     sit on top of the 720px content column (measured: 250px of overlap
+     at 768px, 122px at 1024px). Above 1300px the left gutter is finally
+     wide enough, so the card is simply always open and the toggle goes.
+     ================================================================== */
+
+  /* Registering these gets calc() a real number instead of a token
+     substitution, and it makes the two size inputs animatable. That
+     matters because transitioning `width` directly is not an option —
+     the spring writes width every frame and a transition would fight it.
+     Transitioning the custom property instead lets every calc() that
+     depends on it recompute smoothly, so the capsule can widen for the
+     waveform and the card can narrow when there is no preview button,
+     both without touching the spring. Unregistered, they still work;
+     the change is just instant. */
+  @property --t{ syntax: '<number>'; inherits: true; initial-value: 0; }
+  @property --btnw{ syntax: '<number>'; inherits: true; initial-value: 42; }
+  @property --wavew{ syntax: '<number>'; inherits: true; initial-value: 31; }
+
+  .now-playing{
+    position: fixed;
+    /* keeps clear of the iOS home indicator without moving on other devices */
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    left: max(14px, env(safe-area-inset-left, 0px));
+    z-index: 20;
+    transform-origin: bottom left;
+
+    /* --- the two shapes, as plain numbers so calc() can mix them --- */
+    --t: 0;            /* 0 = capsule, 1 = card. The spring owns this. */
+    /* The card is a fixed 284 wide and the meter is fitted inside it — the
+       text column pays for the slot rather than the card growing. Each
+       trailing column carries its own 10px leading gap, so the meter sits
+       evenly between the text and the button instead of crowding either.
+
+       Both slots stay open whether or not audio is playing. Sizing them to
+       the live state would mean the widget changed shape every time someone
+       pressed play, which is a lot of movement to buy a few pixels. They
+       collapse only when the track genuinely has no preview — content
+       changing, not state flickering. */
+    --dw: 121;         /* text column */
+    --btnw: 44;        /* preview button + its 10px gap */
+    --wavew: 31;       /* level meter + its 10px gap */
+    --w0: 81;   --w1: calc(88 + var(--dw) + var(--wavew) + var(--btnw));
+    --h0: 52;   --h1: 76;
+    --r0: 26;   --r1: 20;
+    --p0: 8;    --p1: 12;    /* inset of the artwork from the bottom-left */
+    --a0: 36;   --a1: 52;    /* artwork edge */
+    --k0: 12;   --k1: 15;    /* artwork corner */
+    /* mixed once here, read by every child below */
+    --pad: calc(var(--p0) + (var(--p1) - var(--p0)) * var(--t));
+    --art: calc(var(--a0) + (var(--a1) - var(--a0)) * var(--t));
+
+    /* entrance — see .np-ready, set a frame after the first fetch lands.
+       It materialises (blur + scale + rise) rather than just fading, and
+       it does not overshoot: nothing threw it, so nothing should bounce. */
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+    filter: blur(5px);
+    transition: opacity 0.44s cubic-bezier(0.3, 0.7, 0.3, 1),
+                transform 0.62s cubic-bezier(0.22, 1, 0.36, 1),
+                filter 0.44s ease-out,
+                --btnw 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+                --wavew 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .now-playing.np-ready{ opacity: 1; transform: none; filter: none; }
+  .now-playing.np-nopreview{ --btnw: 0; --wavew: 0; }
+  .now-playing[hidden]{ display: none; }
+
+  /* The visible box. Separate from .now-playing so the press feedback can
+     own `transform` without stepping on the entrance transform. */
+  .np-shell{
+    position: relative;
+    overflow: hidden;
+    contain: layout paint;
+    max-width: calc(100vw - 28px);
+    width:  calc(1px * (var(--w0) + (var(--w1) - var(--w0)) * var(--t)));
+    height: calc(1px * (var(--h0) + (var(--h1) - var(--h0)) * var(--t)));
+    border-radius: calc(1px * (var(--r0) + (var(--r1) - var(--r0)) * var(--t)));
+    /* a floating layer, so it reads as glass over the page rather than a
+       cut-out pasted on top of it */
+    background: color-mix(in srgb, var(--card) 84%, transparent);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    /* hairline as an inset shadow, not a border: the content box then
+       equals the declared width and the fixed-width text column inside
+       can never be clipped by two stray pixels */
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.26), inset 0 0 0 1px var(--line);
+    transform: scale(var(--press, 1));
+    transform-origin: bottom left;
+    transition: transform 0.16s cubic-bezier(0.3, 0, 0.2, 1),
+                box-shadow 0.45s ease;
+  }
+  /* bigger surface reads as thicker: the card carries a deeper shadow */
+  .now-playing.np-open .np-shell{
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34), inset 0 0 0 1px var(--line);
+  }
+
+  /* The whole surface is the toggle. It sits under the preview button, so
+     that button still gets its own clicks. */
+  .np-hit{
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    appearance: none;
+    -webkit-appearance: none;
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    border-radius: inherit;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .np-hit:focus-visible{
+    outline: 2px solid var(--accent);
+    outline-offset: -3px;
+  }
+
+  /* ---- artwork: the one element both shapes share ------------------ */
+  .np-art-wrap{
+    position: absolute;
+    left:   calc(1px * var(--pad));
+    bottom: calc(1px * var(--pad));
+    width:  calc(1px * var(--art));
+    height: calc(1px * var(--art));
+    border-radius: calc(1px * (var(--k0) + (var(--k1) - var(--k0)) * var(--t)));
+    overflow: hidden;
+    z-index: 1;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 65%, transparent);
+    /* entrance only — lands 90ms after the shell so the widget assembles
+       itself instead of arriving in one flat piece */
+    opacity: 0;
+    transform: scale(0.84);
+    transition: opacity 0.34s ease 0.09s,
+                transform 0.5s cubic-bezier(0.22, 1.15, 0.4, 1) 0.09s,
+                filter 0.4s ease;
+  }
+  .now-playing.np-ready .np-art-wrap{ opacity: 1; transform: none; }
+  /* "last played" rather than "now playing": pulled back, not greyed out */
+  .now-playing.np-dimmed .np-art-wrap{ filter: saturate(0.5) brightness(0.82); }
+  .np-art{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .now-playing.np-noart .np-art{ display: none; }
+  .np-note{
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-soft);
+    font-size: calc(0.42px * var(--art));
+    line-height: 1;
+  }
+  .now-playing.np-noart .np-note{ display: flex; }
+
+  /* ---- capsule indicator: dot until audio plays, then the waveform ----
+     One fixed slot, sized so the bars fit and the dot sits centred in it.
+     The capsule therefore never changes width when playback starts — the
+     dot simply becomes the waveform in place. */
+  .np-pulse{
+    position: absolute;
+    left:   calc(1px * (var(--pad) + var(--art) + 10));
+    bottom: calc(1px * (var(--pad) + var(--art) / 2 - 8));
+    width: 16px;
+    height: 16px;
+    z-index: 1;
+    pointer-events: none;
+    /* gone well before the text column arrives, so the two never overlap */
+    opacity: clamp(0, calc(1 - var(--t) * 3.4), 1);
+  }
+  .np-pulse .np-dot,
+  .np-pulse .np-wave{
+    position: absolute;
+    top: 50%;
+    transform-origin: center;
+  }
+  .np-pulse .np-dot{
+    left: 5px;
+    margin-top: -3px;
+    transition: opacity 0.28s ease,
+                transform 0.4s cubic-bezier(0.3, 1.2, 0.4, 1);
+  }
+  .np-pulse .np-wave{
+    left: 0;
+    margin-top: -7px;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: opacity 0.3s ease,
+                transform 0.46s cubic-bezier(0.22, 1.3, 0.4, 1);
+  }
+  .now-playing.np-audio .np-pulse .np-dot{ opacity: 0; transform: scale(0.2) translateY(-50%); }
+  .now-playing.np-audio .np-pulse .np-wave{ opacity: 1; transform: scale(1); }
+
+  .np-dot{
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    animation: npPulse 1.9s ease-in-out infinite;
+  }
+  .now-playing.np-dimmed .np-dot{ background: var(--text-soft); animation: none; }
+  @keyframes npPulse{
+    0%, 100% { opacity: 1;   transform: scale(1); }
+    50%      { opacity: 0.35; transform: scale(0.7); }
+  }
+
+  /* Live waveform, driven by a real AnalyserNode over the preview audio.
+     Bars are a fixed height and only scaleY, growing from the centre like
+     the dynamic island — that keeps the whole thing on the compositor. */
+  .np-wave{
+    display: flex;
+    align-items: center;
+    gap: 2.5px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+  .np-wave i{
+    display: block;
+    width: 2.5px;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+    transform: scaleY(0.14);
+    transform-origin: center;
+    /* JS writes scaleY every frame; this only smooths the gap between frames */
+    transition: transform 0.06s linear;
+  }
+  .now-playing.np-dimmed .np-wave i{ background: var(--text-soft); }
+
+  /* ---- text column: only exists in the card ------------------------ */
+  .np-detail{
+    position: absolute;
+    left:   calc(1px * (var(--pad) + var(--art) + 12));
+    bottom: calc(1px * var(--pad));
+    width:  calc(1px * var(--dw));
+    height: calc(1px * var(--art));
+    z-index: 1;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    /* trails the shape: the box opens first, the content follows it in
+       from the artwork's edge, which is where it came from */
+    opacity: clamp(0, calc((var(--t) - 0.38) * 2.7), 1);
+    transform: translateX(calc(-12px * (1 - clamp(0, var(--t), 1))));
+  }
+  .np-label{
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;      /* small type wants a little air */
+    text-transform: uppercase;
+    color: var(--text-soft);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+    margin-bottom: 1px;
+  }
+
+  .np-title{
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.93rem;
+    font-weight: 600;
+    line-height: 1.22;
+    letter-spacing: -0.006em;   /* tightened as it gets larger */
+    color: var(--accent-bright);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .np-artist{
+    font-family: 'Quicksand', sans-serif;
+    font-size: 0.76rem;
+    font-weight: 600;           /* heavier over glass, for legibility */
+    line-height: 1.22;
+    color: var(--text-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* Long titles scroll instead of being cut off. Two copies separated by a
+     gap, translated by exactly one copy's width, so the loop is seamless —
+     a single copy sliding back would visibly snap. It rests at both ends
+     rather than grinding around forever, and it only runs while the card
+     is actually open. */
+  .np-title.is-marquee,
+  .np-artist.is-marquee{
+    display: flex;
+    text-overflow: clip;
+    /* dissolve at the trailing edge instead of guillotining the text on
+       the card's border — the same idea as a scroll edge effect */
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 18px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 18px), transparent);
+  }
+  .np-title.is-marquee > span,
+  .np-artist.is-marquee > span{
+    flex: none;
+    padding-right: var(--marquee-gap, 30px);
+    animation: marqueeScroll var(--marquee-dur, 9s) linear infinite;
+    animation-play-state: paused;
+  }
+  .now-playing.np-open .np-title.is-marquee > span,
+  .now-playing.np-open .np-artist.is-marquee > span{ animation-play-state: running; }
+  @keyframes marqueeScroll{
+    0%,   9%  { transform: translateX(0); }
+    91%, 100% { transform: translateX(calc(-1 * var(--marquee-dist, 0px))); }
+  }
+
+  /* ---- level meter: its own column, only while audio is playing -----
+     It used to ride along at the end of the label line, which parked it in
+     the empty gap above the preview button with nothing to anchor it, and
+     forced it down to the cap height of 9px mono. Given its own slot,
+     centred on the artwork alongside the button, it reads as part of the
+     transport — and it can finally be big enough to actually show the
+     signal the AnalyserNode is producing. */
+  .np-meter{
+    position: absolute;
+    right:  calc(1px * (var(--pad) + var(--btnw)));
+    bottom: calc(1px * (var(--pad) + var(--art) / 2 - 12));
+    height: 24px;
+    z-index: 1;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    /* grows out of the baseline rather than appearing at full height */
+    opacity: 0;
+    transform: scaleY(0.25);
+    transform-origin: center;
+    transition: opacity 0.3s ease,
+                transform 0.5s cubic-bezier(0.22, 1.25, 0.4, 1);
+  }
+  /* only in the card (the capsule has its own indicator) and only on audio */
+  .now-playing.np-audio .np-meter{
+    opacity: clamp(0, calc((var(--t) - 0.5) * 3), 1);
+    transform: none;
+  }
+  .np-meter .np-wave{ height: 24px; gap: 3px; }
+  .np-meter .np-wave i{ width: 3px; border-radius: 2.5px; }
+
+  /* ---- preview button ---------------------------------------------- */
+  .np-playbtn{
+    --rv: clamp(0, calc((var(--t) - 0.5) * 3), 1);
+    position: absolute;
+    right:  calc(1px * var(--pad));
+    bottom: calc(1px * (var(--pad) + var(--art) / 2 - 17));
+    z-index: 4;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 0;
+    background: var(--accent);
+    color: var(--on-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    /* revealed by the growing right edge, so it reads as uncovered rather
+       than dropped on top */
+    opacity: var(--rv);
+    transform: scale(calc((0.72 + 0.28 * var(--rv)) * var(--pbs, 1)));
+    pointer-events: none;
+    transition: background 0.2s ease, transform 0.22s cubic-bezier(0.3, 1.3, 0.5, 1);
+  }
+  .now-playing.np-open .np-playbtn{ pointer-events: auto; }
+  .np-playbtn:hover, .np-playbtn:focus-visible{ background: var(--accent-2-bright); --pbs: 1.09; }
+  .np-playbtn:active{ --pbs: 0.94; }
+  .np-playbtn:focus-visible{ outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+  .np-playbtn[hidden]{ display: none; }
+  .np-playbtn svg{ display: block; }
+
+  /* 284 + a 14px gutter clears any phone still in use, so there is no
+     narrow breakpoint; the max-width on the shell is the only backstop. */
+
+  /* --- full card, only once the left gutter is actually wide enough --- */
+  @media (min-width: 1300px){
+    .now-playing{ bottom: 20px; left: 20px; }
+    .np-hit{ display: none; }   /* pinned open by JS; nothing left to toggle */
+  }
+
+  @media (prefers-reduced-transparency: reduce){
+    nav.pillnav,
+    section,
+    .presence,
+    .np-shell{
+      background: var(--card);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
+  @media (prefers-contrast: more){
+    section{
+      background: var(--card);
+      border-color: var(--accent-2-bright);
+    }
+    .presence{ border-color: var(--presence-colour); }
+  }
+
+  /* theme switcher — opposite corner from the now-playing widget */
+  .theme-switch{
+    position: fixed;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    right: max(18px, env(safe-area-inset-right, 0px));
+    z-index: 20;
+    display: flex;
+    gap: 9px;
+    padding: 8px 11px;
+    border-radius: 999px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    transition: bottom 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .theme-switch button{
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    background: var(--swatch);
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .theme-switch button:hover{ transform: scale(1.12); }
+  .theme-switch button[aria-checked="true"]{
+    border-color: var(--text);
+    transform: scale(1.12);
+  }
+  /* each dot shows its own palette's accent, not the current one */
+  .theme-switch button[data-theme="mint"]{ --swatch: #8fcbb0; }
+  .theme-switch button[data-theme="rain"]{ --swatch: #7fa8c4; }
+
+  @media (max-width: 560px){
+    .theme-switch{
+      bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      right: max(12px, env(safe-area-inset-right, 0px));
+      gap: 7px;
+      padding: 7px 9px;
+    }
+  }
+
+  /* On compact phones the open 284px player and the opposite-corner theme
+     control occupy the same horizontal space. Keep the player's bottom-left
+     anchor stable and lift the secondary control above it while the card is
+     open. The sibling selector works because both controls are body children. */
+  @media (max-width: 372px){
+    .now-playing.np-open ~ .theme-switch{
+      bottom: calc(102px + env(safe-area-inset-bottom, 0px));
+    }
+  }
+
+  /* rain streaks — only injected for the `rain` theme, same machinery as the
+     sparkles with a thin streak instead of a glyph */
+  .raindrop{
+    position: fixed;
+    top: 0;
+    width: 1px;
+    background: linear-gradient(transparent, var(--accent-2-bright));
+    pointer-events: none;
+    z-index: 0;
+    animation: rainFall linear infinite;
+  }
+  @keyframes rainFall{
+    0%   { transform: translate3d(0, -20vh, 0); }
+    100% { transform: translate3d(40px, 120vh, 0); }
+  }
+
+  /* ---- easter eggs ---------------------------------------------------- */
+
+  /* sparkle burst (shiny find, konami) */
+  .pop{
+    position: fixed;
+    pointer-events: none;
+    z-index: 30;
+    color: var(--accent-bright);
+    animation: popOut 0.9s ease-out forwards;
+  }
+  @keyframes popOut{
+    0%   { opacity: 0; transform: translate(0, 0) scale(0.5); }
+    25%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--dx, 0), -46px) scale(1.15); }
+  }
+
+  .shiny-count{
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    color: var(--text-soft);
+    margin: 10px 0 0;
+  }
+
+  /* konami toast */
+  .toast{
+    position: fixed;
+    left: 50%;
+    bottom: 74px;
+    transform: translateX(-50%);
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: min(92vw, 380px);
+    padding: 10px 10px 10px 16px;
+    border-radius: 999px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    font-size: 0.85rem;
+    animation: toastIn 0.25s ease-out;
+  }
+  @keyframes toastIn{
+    from { opacity: 0; transform: translate(-50%, 8px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
+  }
+  .toast-x{
+    flex-shrink: 0;
+    width: 24px; height: 24px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--surface-3);
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  /* petting the critter */
+  .crit-flip{
+    background: none;
+    border: 0;
+    padding: 0;
+    /* the track and the sliding wrapper stay click-through; only the sprite
+       itself is a target */
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  /* the hop goes on the <svg>, not on .crit-flip — that element is already
+     running faceFlip and two transform animations would fight */
+  @keyframes hop{
+    0%, 100% { transform: translateY(0); }
+    40%      { transform: translateY(-10px); }
+    70%      { transform: translateY(-2px); }
+  }
+  .crit-flip.hop svg{ animation: hop 0.5s ease; }
+
+  .heart-pop{
+    position: fixed;
+    pointer-events: none;
+    z-index: 30;
+    color: var(--accent-bright);
+    font-size: 0.95rem;
+    animation: heartUp 1s ease-out forwards;
+  }
+  @keyframes heartUp{
+    0%   { opacity: 0; transform: translateY(0) scale(0.6); }
+    20%  { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-38px) scale(1); }
+  }
+
+  /* the critter dozing off */
+  .zzz{
+    position: absolute;
+    bottom: 26px;
+    left: 26px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    color: var(--accent-2-bright);
+    white-space: nowrap;
+    pointer-events: none;
+    animation: zzzFloat 3.4s ease-in-out infinite;
+  }
+  @keyframes zzzFloat{
+    0%, 100% { opacity: 0.25; transform: translateY(0); }
+    50%      { opacity: 0.85; transform: translateY(-5px); }
+  }
+
+  /* while something is actually playing, the critter walks a little quicker */
+  body.np-live .crit-leg{ animation-duration: 0.38s; }
+
+  /* birthday banner (october 5, automatic) */
+  .bday{
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--accent-bright);
+    background: var(--surface-3);
+    border: 1px solid var(--accent-2);
+    border-radius: 999px;
+    padding: 7px 15px;
+    margin: 0 0 18px;
+  }
+
+  .visually-hidden{
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+
+
+  a:focus-visible, button:focus-visible{
+    outline: 3px solid var(--accent-2-bright);
+    outline-offset: 2px;
+  }

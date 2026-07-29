@@ -14,6 +14,7 @@
 //   LASTFM_USER
 
 const FAIL_SOFT_BODY = { nowplaying: false };
+const UPSTREAM_TIMEOUT_MS = 6000;
 
 export async function onRequestGet(context) {
   const { env } = context;
@@ -59,7 +60,7 @@ async function getRecentTrack(apiKey, user) {
     `&api_key=${encodeURIComponent(apiKey)}` +
     "&format=json&limit=1";
 
-  const res = await fetch(url);
+  const res = await fetchWithTimeout(url);
   if (!res.ok) return null;
 
   const data = await res.json();
@@ -114,13 +115,24 @@ async function deezerSearch(title, artist) {
     const q = `artist:"${artist}" track:"${title}"`;
     const url = `https://api.deezer.com/search?q=${encodeURIComponent(q)}&limit=1`;
 
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url);
     if (!res.ok) return "";
 
     const data = await res.json();
     return data?.data?.[0]?.preview || "";
   } catch (err) {
     return "";
+  }
+}
+
+async function fetchWithTimeout(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
