@@ -539,7 +539,7 @@
     <h1 class="title"><span>kitalina</span> :p</h1>
     <div class="aka">kit &nbsp;/&nbsp; roomba &nbsp;/&nbsp; kitalina &nbsp;/&nbsp; ames</div>
     <p class="intro">
-      hai! I'm <strong>kit</strong>, welcome to my little corner of the internet &mdash;
+      hai! I'm <strong>kit</strong>, and welcome to my website!
       everything you need to know about me lives here &lt;3 for anything related to my
       gender identity or attraction, check my <a href="https://pronouns.cc/@kitalina" target="_blank" rel="noopener">pronouns.cc</a>!
     </p>
@@ -560,7 +560,7 @@
       <tr><td>birthday</td><td>october 5th</td></tr>
       <tr><td>pronouns</td><td>they / them</td></tr>
       <tr><td>star sign</td><td>libra</td></tr>
-      <tr><td>time zone</td><td>pst / pdt</td></tr>
+      <tr><td>time zone</td><td>pst / pdt &middot; <span id="laTime">--:--</span> in Los Angeles</td></tr>
     </table>
   </section>
 
@@ -676,6 +676,21 @@
     el.style.fontSize = (0.8 + Math.random() * 1) + 'rem';
     container.appendChild(el);
   }
+
+  // live clock for the "time zone" bio row
+  (function(){
+    const el = document.getElementById('laTime');
+    if (!el) return;
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Los_Angeles',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    function update(){ el.textContent = fmt.format(new Date()); }
+    update();
+    setInterval(update, 30000);
+  })();
 
   // now playing widget: polls /api/nowplaying (Last.fm + Deezer preview proxy)
   // and plays the 30s preview via a plain <audio> element.
