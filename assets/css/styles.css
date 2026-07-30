@@ -667,15 +667,6 @@
     .spr:hover img, .spr:focus-visible img{ filter: brightness(1.3); }
   }
 
-  /* the star carries the meaning so it survives greyscale / colour-blindness —
-     the gradient is decoration on top of it, not the signal */
-  .taglist li.starred::before{
-    content: '★';
-    margin-right: 5px;
-    font-size: 0.8em;
-    vertical-align: 1px;
-  }
-
   /* was a <table> with no <th> — an unlabelled grid to a screen reader.
      A description list says "these are term/value pairs" for free. */
   dl.bio-list{
