@@ -3,9 +3,10 @@
   // plain text pills they always were. This map is the only place a dex id lives;
   // add a name to the <ul> and its id here and the row picks it up.
   const POKEDEX = {
-    dewgong: 87,  spheal: 363,   umbreon: 197,  leafeon: 470, shinx: 403,
-    zorua: 570,   sawsbuck: 586, deerling: 585, dratini: 147, sharpedo: 319,
-    altaria: 334
+    dewgong: 87,    spheal: 363,   umbreon: 197,  leafeon: 470,
+    oshawott: 501,  samurott: 503, dragonair: 148, milotic: 350,
+    magneton: 82,   zorua: 570,    gyarados: 130, pachirisu: 417,
+    emolga: 587,    corsola: 222,  minun: 312
   };
 
   // gen-V animated gifs, with the static png as the fallback
