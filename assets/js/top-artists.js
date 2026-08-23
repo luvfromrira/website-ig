@@ -23,9 +23,26 @@
       const artists = Array.isArray(data && data.artists) ? data.artists : [];
       if (!artists.length) return;
 
+      // Falls back to the bare profile if a pill has no per-artist url, and to
+      // plain text if there is no link at all -- a pill that looks clickable
+      // and goes nowhere is worse than one that doesn't.
+      const profile = typeof data.profile === 'string' ? data.profile : '';
+
       list.replaceChildren(...artists.map((artist, i) => {
         const li = document.createElement('li');
-        li.textContent = artist.name;
+        const href = artist.url || profile;
+
+        if (href) {
+          const a = document.createElement('a');
+          a.href = href;
+          a.textContent = artist.name;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          li.append(a);
+        } else {
+          li.textContent = artist.name;
+        }
+
         // the top three get the same star treatment as the picked-by-hand faves
         if (i < 3) li.classList.add('starred');
         if (artist.plays) {

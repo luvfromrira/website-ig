@@ -605,6 +605,23 @@
     padding: 6px 13px;
     border-radius: 999px;
   }
+  /* Linked pills (the Last.fm artists). The anchor pulls the li's own padding
+     back onto itself so the whole pill is the hit target rather than just the
+     glyphs, and inherits its colour so a starred pill still reads as starred. */
+  .taglist li > a{
+    display: block;
+    margin: -6px -13px;
+    padding: 6px 13px;
+    border-radius: inherit;
+    color: inherit;
+    text-decoration: none;
+  }
+  .taglist li:has(> a):hover{ border-color: var(--accent); }
+  .taglist li > a:hover{ text-decoration: underline; }
+  .taglist li > a:focus-visible{
+    outline: 2px solid var(--accent-bright);
+    outline-offset: 2px;
+  }
   .taglist li.starred{
     background: linear-gradient(145deg, var(--accent-bright), var(--accent) 45%, var(--accent-2));
     color: var(--on-accent);

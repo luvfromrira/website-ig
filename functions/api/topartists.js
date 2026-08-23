@@ -34,15 +34,25 @@ export async function onRequestGet(context) {
     const raw = data?.topartists?.artist;
     if (!Array.isArray(raw)) return jsonResponse(FAIL_SOFT_BODY);
 
+    // The username is only known here, so the profile link is built server-side
+    // rather than leaving the frontend to guess it.
+    const profile = `https://www.last.fm/user/${encodeURIComponent(env.LASTFM_USER)}`;
+
     const artists = raw
       .map((a) => ({
         name: String(a?.name || "").trim(),
         plays: Number(a?.playcount) || 0,
       }))
       .filter((a) => a.name)
-      .slice(0, LIMIT);
+      .slice(0, LIMIT)
+      .map((a) => ({
+        ...a,
+        // deep-links to that artist inside the user's own library, which is the
+        // page the play count on the pill is actually counting
+        url: `${profile}/library/music/${encodeURIComponent(a.name)}`,
+      }));
 
-    return jsonResponse({ artists });
+    return jsonResponse({ profile, artists });
   } catch (err) {
     // Last.fm down, bad JSON, timeout -- the list just doesn't render.
     return jsonResponse(FAIL_SOFT_BODY);
