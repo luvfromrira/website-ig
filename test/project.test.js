@@ -38,7 +38,7 @@ test('every relative JavaScript import resolves', () => {
   }
 
   visit(entry);
-  assert.equal(visited.size, 6);
+  assert.equal(visited.size, 7);
 });
 
 test('all normal and shiny sprite variants are present', () => {
